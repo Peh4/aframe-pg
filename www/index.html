@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="UTF-8">
+	<title>Test A-frame</title>
+	<script src="https://aframe.io/releases/0.2.0/aframe.min.js"></script>
+	<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+	<script type="text/javascript" charset="utf-8" src="fastclick.js"></script>
+    
+</head>
+<body onload="onLoad()">
+	<div id=header class="button button-block button-large">
+	    <img align=left src=favicon-48x48.png>
+	    Phonegap Accelerometer Test
+	</div>
+	<p />&nbsp;<p />
+	<button id=clearWatch onclick='accelOff()' class="button button-pill button-primary button-large">Clear Watch</button>
+
+	<button id=exitApp onclick='navigator.app.exitApp()' class="button button-pill button-primary button-large">Exit</button>
+
+	<div id=ax class="button button-block button-action button-large" style="margin:1em;">X <span id=accelX></span></div>
+
+	<div id=ay class="button button-block button-action button-large" style="margin:1em;">Y <span id=accelY></span></div>
+
+	<div id=az class="button button-block button-action button-large" style="margin:1em;">Z <span id=accelZ></span></div>
+
+	<div id=ts class="button button-block button-primary button-large" style="margin:1em;">TS <span id=timestamp></span></div>
+	
+	<a-scene>
+  		<a-assets>
+    		<img id="texture" src="texture.png">
+  		</a-assets>
+
+  		
+  		<a-entity id="camera" position="0 0 5">
+  		  <a-entity camera></a-entity>
+  		</a-entity>
+  	
+  		<a-box color="#FF3" width="1" height="1" depth="1"
+         position="0 0 0" rotation="0 0 0" scale="1 1 1"
+         src="#texture"></a-box>
+         <a-cone color="tomato" radius-bottom="2" radius-top="0.5" position="10 1 0"></a-cone>
+	</a-scene>
+	<script type="text/javascript">
+    var gWatchID = null;
+    var gOptions = { frequency: 100 };  // Update every x seconds
+
+    var af_camera = document.querySelector('#camera');
+    console.log(af_camera);
+
+    var init_af_camera_x   = af_camera.getAttribute('position').x;
+    var init_af_camera_y   = af_camera.getAttribute('position').y;
+    var init_af_camera_z   = af_camera.getAttribute('position').z;
+
+    var af_camera_x = init_af_camera_x
+	var af_camera_y = init_af_camera_y
+	var af_camera_z = init_af_camera_z
+
+    //
+    // Wait for PhoneGap to load
+    document.addEventListener("deviceready", onDeviceReady, false);
+    //
+    function accelClear() {
+        document.getElementById('accelX').innerHTML = '&nbsp;';
+        document.getElementById('accelY').innerHTML = '&nbsp;';
+        document.getElementById('accelZ').innerHTML = '&nbsp;';
+        document.getElementById('timestamp').innerHTML = '&nbsp;';
+    }
+    function accelUpdate(acceleration) {
+    	//af_camera_x   = init_af_camera_x + acceleration.x*10;
+    	af_camera_x   = (af_camera_x + (init_af_camera_x + acceleration.x*(-1)/2))/2;
+	    af_camera_z   = (af_camera_z + (init_af_camera_z + acceleration.z*(-1)/2))/2;
+        document.getElementById('accelX').innerHTML = acceleration.x.toFixed(2) +" _ "+af_camera_x.toFixed(2);
+        document.getElementById('accelY').innerHTML = acceleration.y.toFixed(2) +" _ "+af_camera_y.toFixed(2);
+        document.getElementById('accelZ').innerHTML = acceleration.z.toFixed(2) +" _ "+af_camera_z.toFixed(2);
+        document.getElementById('timestamp').innerHTML = acceleration.timestamp;
+        af_camera.setAttribute('position', { x: af_camera_x.toFixed(2), y: af_camera_y.toFixed(2), z: af_camera_z });
+    }
+    function accelOff() {
+        navigator.accelerometer.clearWatch(gWatchID);
+    }
+
+    //
+    function onDeviceReady() {
+        // hide Exit button. They don't have one on iOS devices.
+        if (device.platform === "iOS") {
+            //alert("got iOS:" + device.platform);
+            // http://www.mzcart.com/javascript-how-to-addremove-css-class-from-a-dom-element/
+            document.getElementById('exitApp').classList.add("hidden");
+            /* deals with post iOS 7 change that cover the status bar */
+            /* http://coenraets.org/blog/2013/09/phonegap-and-cordova-with-ios-7/ */
+            document.body.style.marginTop = "20px";
+        } else if (device.platform == 'Android') {
+            // Get rid of 300ms delay 
+            document.addEventListener('DOMContentLoaded', function() { FastClick.attach(document.body); }, false);
+        }
+        navigator.accelerometer.getCurrentAcceleration(accelUpdate, function() {alert("Error on getCurrentAccel");});
+        gWatchID = navigator.accelerometer.watchAcceleration(accelUpdate,
+                function() {
+                    alert("Error on watchAccel");
+                },
+                gOptions);
+    }
+    //
+    function onLoad() {
+        accelClear();
+    }
+
+Accelerometer    
+
+</script>
+</body>
+</html>
